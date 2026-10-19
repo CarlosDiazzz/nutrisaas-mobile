@@ -1,5 +1,8 @@
 import {
   describirDia,
+  diaDeLaSemana,
+  hoyEnZona,
+  sumarDias,
   formatearDia,
   formatearDiaYHora,
   formatearFechaLarga,
@@ -65,5 +68,23 @@ describe('fechas', () => {
 
   it('la medianoche se escribe 00:00 aunque el motor la entregue como 24', () => {
     expect(formatearDiaYHora('2027-03-16T06:00:00Z', ZONA)).toBe('Martes 16 de marzo · 00:00');
+  });
+
+  it('hoy depende de la zona: el mismo instante es otro día en Tokio', () => {
+    const instante = new Date('2027-03-15T16:00:00Z');
+    expect(hoyEnZona(ZONA, instante)).toBe('2027-03-15');
+    expect(hoyEnZona('Asia/Tokyo', instante)).toBe('2027-03-16');
+  });
+
+  it('suma días cruzando meses y años', () => {
+    expect(sumarDias('2027-03-15', 3)).toBe('2027-03-18');
+    expect(sumarDias('2027-03-01', -1)).toBe('2027-02-28');
+    expect(sumarDias('2026-12-31', 1)).toBe('2027-01-01');
+  });
+
+  it('numera la semana de 1 (lunes) a 7 (domingo)', () => {
+    expect(diaDeLaSemana('2027-03-15')).toBe(1);
+    expect(diaDeLaSemana('2027-03-21')).toBe(7);
+    expect(diaDeLaSemana('2027-03-18')).toBe(4);
   });
 });

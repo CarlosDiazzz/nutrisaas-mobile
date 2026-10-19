@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, Ref } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +20,8 @@ interface PantallaProps {
   actualizando?: boolean;
   /** Ocupa también el borde inferior; las pantallas con barra de pestañas lo dejan a la barra. */
   conBordeInferior?: boolean;
+  /** Referencia al desplazamiento, para llevar un bloque a la vista. */
+  referenciaDesplazamiento?: Ref<ScrollView>;
 }
 
 /** Área segura con el fondo y el margen lateral de 18 pt del diseño. */
@@ -29,6 +31,7 @@ export default function Pantalla({
   onActualizar,
   actualizando = false,
   conBordeInferior = false,
+  referenciaDesplazamiento,
 }: PantallaProps) {
   const bordes = conBordeInferior ? (['top', 'bottom'] as const) : (['top'] as const);
   return (
@@ -41,6 +44,7 @@ export default function Pantalla({
           <View style={estilos.contenido}>{children}</View>
         ) : (
           <ScrollView
+            ref={referenciaDesplazamiento}
             contentContainerStyle={estilos.contenido}
             keyboardShouldPersistTaps="handled"
             refreshControl={
