@@ -1,8 +1,10 @@
 export interface CredencialesLogin {
-  correo: string;
-  contrasena: string;
+  email: string;
+  password: string;
 }
 
-export interface RespuestaLogin {
-  token: string;
+export interface DatosActivacion {
+  email: string;
+  codigo: string;
+  password: string;
 }

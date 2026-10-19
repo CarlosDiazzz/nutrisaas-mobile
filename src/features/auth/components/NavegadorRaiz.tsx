@@ -1,24 +1,24 @@
 import { Stack } from 'expo-router';
 
-import Spinner from '@/shared/components/ui/Spinner';
+import { useSesion } from '../hooks/useSesion';
 
-import { useSession } from '../hooks/useSession';
+import PantallaCarga from './PantallaCarga';
 
-/** Muestra las pestañas solo con sesión; sin sesión, solo el login. */
+/** Con sesión solo se ven las pantallas de la app; sin ella, solo las de acceso. */
 export default function NavegadorRaiz() {
-  const { cargando, estaAutenticado } = useSession();
+  const { cargando, estaAutenticado } = useSesion();
 
   if (cargando) {
-    return <Spinner />;
+    return <PantallaCarga />;
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={estaAutenticado}>
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(app)" />
       </Stack.Protected>
       <Stack.Protected guard={!estaAutenticado}>
-        <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="(auth)" />
       </Stack.Protected>
     </Stack>
   );

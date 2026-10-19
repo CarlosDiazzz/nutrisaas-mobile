@@ -1,3 +1,3 @@
-import LoginScreen from '@/features/auth/components/LoginScreen';
+import LoginScreen from '@/features/auth/screens/LoginScreen';
 
 export default LoginScreen;

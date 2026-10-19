@@ -1,16 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 
-import Button from '@/shared/components/ui/Button';
-import Input from '@/shared/components/ui/Input';
-import { colores, espaciado, tipografia } from '@/theme';
+import { Alerta, Boton, Campo } from '@/components/ui';
 
 import { LoginFormValues, loginSchema } from '../schemas/loginSchema';
 
 interface LoginFormProps {
   onSubmit: (datos: LoginFormValues) => void;
   cargando?: boolean;
+  /** Error del servidor (credenciales incorrectas, cuenta que no es de paciente, sin conexión…). */
   errorMensaje?: string;
 }
 
@@ -21,49 +20,47 @@ export default function LoginForm({ onSubmit, cargando = false, errorMensaje }: 
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { correo: '', contrasena: '' },
+    defaultValues: { email: '', password: '' },
   });
 
   return (
-    <View style={estilos.formulario}>
+    <View>
       <Controller
         control={control}
-        name="correo"
+        name="email"
         render={({ field: { value, onChange, onBlur } }) => (
-          <Input
+          <Campo
             etiqueta="Correo electrónico"
             autoCapitalize="none"
             autoComplete="email"
+            autoCorrect={false}
             keyboardType="email-address"
+            textContentType="emailAddress"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            error={errors.correo?.message}
+            error={errors.email?.message}
           />
         )}
       />
       <Controller
         control={control}
-        name="contrasena"
+        name="password"
         render={({ field: { value, onChange, onBlur } }) => (
-          <Input
+          <Campo
             etiqueta="Contraseña"
             secureTextEntry
-            autoComplete="password"
+            autoComplete="current-password"
+            textContentType="password"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            error={errors.contrasena?.message}
+            error={errors.password?.message}
           />
         )}
       />
-      {errorMensaje ? <Text style={estilos.error}>{errorMensaje}</Text> : null}
-      <Button titulo="Iniciar sesión" onPress={handleSubmit(onSubmit)} cargando={cargando} />
+      {errorMensaje ? <Alerta texto={errorMensaje} /> : null}
+      <Boton titulo="Iniciar sesión" onPress={handleSubmit(onSubmit)} cargando={cargando} />
     </View>
   );
 }
-
-const estilos = StyleSheet.create({
-  formulario: { gap: espaciado.md },
-  error: { color: colores.error, fontSize: tipografia.tamanoPequeno },
-});
