@@ -11,8 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { SesionProvider } from '@/features/auth/components/SesionProvider';
-import NavegadorRaiz from '@/features/auth/components/NavegadorRaiz';
+import { NavegadorRaiz, SesionProvider } from '@/features/auth';
 
 SplashScreen.preventAutoHideAsync();
 

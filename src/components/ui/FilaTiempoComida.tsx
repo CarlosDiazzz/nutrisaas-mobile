@@ -1,6 +1,7 @@
 import { Coffee, LucideIcon, Moon, Sun, UtensilsCrossed } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { formatearMiles } from '@/shared/utils/fechas';
 import { colores, fuentes, radios } from '@/theme';
 
 export type TiempoComida =
@@ -32,7 +33,7 @@ export default function FilaTiempoComida({
   onPress,
 }: FilaTiempoComidaProps) {
   const Icono = ICONOS[tiempo];
-  const kcalTexto = Math.round(kcal).toLocaleString('es-MX');
+  const kcalTexto = formatearMiles(kcal);
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : 'text'}

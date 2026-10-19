@@ -1,5 +1,12 @@
 import { ReactNode } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colores, espaciado } from '@/theme';
@@ -26,21 +33,26 @@ export default function Pantalla({
   const bordes = conBordeInferior ? (['top', 'bottom'] as const) : (['top'] as const);
   return (
     <SafeAreaView style={estilos.area} edges={bordes}>
-      {fija ? (
-        <View style={estilos.contenido}>{children}</View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={estilos.contenido}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            onActualizar ? (
-              <RefreshControl refreshing={actualizando} onRefresh={onActualizar} />
-            ) : undefined
-          }
-        >
-          {children}
-        </ScrollView>
-      )}
+      <KeyboardAvoidingView
+        style={estilos.area}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {fija ? (
+          <View style={estilos.contenido}>{children}</View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={estilos.contenido}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              onActualizar ? (
+                <RefreshControl refreshing={actualizando} onRefresh={onActualizar} />
+              ) : undefined
+            }
+          >
+            {children}
+          </ScrollView>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

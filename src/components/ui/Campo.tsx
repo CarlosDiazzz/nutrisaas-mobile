@@ -1,5 +1,13 @@
 import { forwardRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import {
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+} from 'react-native';
 
 import { colores, espaciado, fuentes, medidas, radios, tamanos } from '@/theme';
 
@@ -7,11 +15,13 @@ interface CampoProps extends Omit<TextInputProps, 'style'> {
   etiqueta: string;
   ayuda?: string;
   error?: string;
+  /** Ajustes del texto del campo (por ejemplo, el espaciado de un código). */
+  estiloEntrada?: StyleProp<TextStyle>;
 }
 
 /** Campo de texto de 50 pt: borde de 2 pt `primario` al enfocar y `peligro` con error. */
 const Campo = forwardRef<TextInput, CampoProps>(function Campo(
-  { etiqueta, ayuda, error, onFocus, onBlur, ...resto },
+  { etiqueta, ayuda, error, estiloEntrada, onFocus, onBlur, ...resto },
   referencia,
 ) {
   const [enfocado, setEnfocado] = useState(false);
@@ -22,7 +32,12 @@ const Campo = forwardRef<TextInput, CampoProps>(function Campo(
         ref={referencia}
         accessibilityLabel={etiqueta}
         placeholderTextColor={colores.textoPlaceholder}
-        style={[estilos.entrada, enfocado && estilos.enfocado, error ? estilos.conError : null]}
+        style={[
+          estilos.entrada,
+          enfocado && estilos.enfocado,
+          error ? estilos.conError : null,
+          estiloEntrada,
+        ]}
         onFocus={(evento) => {
           setEnfocado(true);
           onFocus?.(evento);

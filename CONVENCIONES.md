@@ -101,7 +101,7 @@ log.info("Paciente {} registrado", paciente.getId());
 
 ## 4. Reglas de la app móvil (nutrisaas-mobile)
 
-- Mismas responsabilidades y flujo que la web: **Pantalla → Hook → Servicio → httpClient**. Un componente nunca importa Axios; un feature no importa internos de otro; lo compartido sube a `src/components/ui` o `src/shared`.
+- Mismas responsabilidades y flujo que la web: **Pantalla → Hook → Servicio → httpClient**. Un componente nunca importa Axios; un feature no importa internos de otro: solo lo que exporta su `index.ts` (por ejemplo `@/features/auth`); lo compartido sube a `src/components/ui` o `src/shared`.
 - Estructura por feature: `src/features/<feature>/{screens,hooks,services,components,schemas}`.
 - Los archivos de `app/` (Expo Router) son **delgados**: solo importan y renderizan una pantalla de `src/features`. Sin lógica ni llamadas HTTP en `app/`.
 
