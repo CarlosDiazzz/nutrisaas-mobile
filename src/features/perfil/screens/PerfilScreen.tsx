@@ -13,9 +13,11 @@ import {
 import { useYo } from '@/shared/hooks/useYo';
 import { formatearFechaLarga } from '@/shared/utils/fechas';
 import { useSesion } from '@/features/auth';
+import { usePreferenciaPush } from '@/features/notificaciones';
 import { colores, fuentes, tamanos } from '@/theme';
 
 import AvatarIniciales from '../components/AvatarIniciales';
+import { SoportePush } from './tiposDeSoporte';
 
 const DIGITOS_TELEFONO = 10;
 
@@ -25,9 +27,16 @@ export function formatearTelefono(telefono: string): string {
   return `${telefono.slice(0, 3)} ${telefono.slice(3, 6)} ${telefono.slice(6)}`;
 }
 
+function detalleDeNotificaciones(soporte: SoportePush): string {
+  if (soporte === 'expoGoAndroid') return 'No disponible en Expo Go de Android';
+  if (soporte === 'sinDispositivo') return 'Disponible solo en un teléfono';
+  return 'Citas, planes nuevos y recordatorios';
+}
+
 export default function PerfilScreen() {
   const yo = useYo();
   const { cerrarSesion } = useSesion();
+  const push = usePreferenciaPush();
 
   if (yo.isPending) {
     return (
@@ -85,13 +94,15 @@ export default function PerfilScreen() {
         <View style={estilos.preferencia}>
           <View style={estilos.textos}>
             <Text style={estilos.titulo}>Notificaciones</Text>
-            <Text style={estilos.detalle}>Disponible pronto</Text>
+            <Text style={estilos.detalle}>{detalleDeNotificaciones(push.soporte)}</Text>
+            {push.mensaje ? <Text style={estilos.aviso}>{push.mensaje}</Text> : null}
           </View>
           <Switch
             accessibilityLabel="Notificaciones"
-            accessibilityState={{ disabled: true }}
-            disabled
-            value={false}
+            accessibilityState={{ disabled: push.soporte !== 'si' || push.trabajando }}
+            disabled={push.soporte !== 'si' || push.trabajando}
+            value={push.activado}
+            onValueChange={(valor) => push.alternar(valor)}
             trackColor={{ true: colores.primario }}
           />
         </View>
@@ -142,6 +153,12 @@ const estilos = StyleSheet.create({
     fontSize: tamanos.pequeno,
     color: colores.textoSuave,
     marginTop: 2,
+  },
+  aviso: {
+    fontFamily: fuentes.normal,
+    fontSize: tamanos.pequeno,
+    color: colores.peligro,
+    marginTop: 4,
   },
   cerrar: { marginTop: 8 },
 });

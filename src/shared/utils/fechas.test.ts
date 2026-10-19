@@ -1,5 +1,6 @@
 import {
   describirDia,
+  formatearHace,
   diaDeLaSemana,
   hoyEnZona,
   nombreDelMes,
@@ -92,5 +93,21 @@ describe('fechas', () => {
   it('da el nombre del mes de un día sin hora', () => {
     expect(nombreDelMes('2026-12-14')).toBe('diciembre');
     expect(nombreDelMes('2027-03-15')).toBe('marzo');
+  });
+
+  describe('formatearHace', () => {
+    const ahora = new Date('2027-03-15T16:00:00Z');
+
+    it('usa minutos y horas para lo reciente', () => {
+      expect(formatearHace('2027-03-15T15:59:50Z', ahora, ZONA)).toBe('Justo ahora');
+      expect(formatearHace('2027-03-15T15:55:00Z', ahora, ZONA)).toBe('Hace 5 min');
+      expect(formatearHace('2027-03-15T14:00:00Z', ahora, ZONA)).toBe('Hace 2 h');
+    });
+
+    it('dice «Ayer» para el día anterior en la zona del consultorio y la fecha corta para lo demás', () => {
+      expect(formatearHace('2027-03-14T14:00:00Z', ahora, ZONA)).toBe('Ayer');
+      expect(formatearHace('2027-02-16T16:00:00Z', ahora, ZONA)).toBe('16 feb');
+      expect(formatearHace('2027-03-08T16:00:00Z', ahora, ZONA)).toBe('8 mar');
+    });
   });
 });

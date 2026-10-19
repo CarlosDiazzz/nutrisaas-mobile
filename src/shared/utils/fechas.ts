@@ -129,3 +129,37 @@ export function diaDeLaSemana(dia: string): number {
 export function nombreDelMes(dia: string): string {
   return MESES[deDiaSinHora(dia).mes - 1];
 }
+
+const MESES_CORTOS = [
+  'ene',
+  'feb',
+  'mar',
+  'abr',
+  'may',
+  'jun',
+  'jul',
+  'ago',
+  'sep',
+  'oct',
+  'nov',
+  'dic',
+];
+const MILISEGUNDOS_POR_MINUTO = 60_000;
+const MINUTOS_POR_HORA = 60;
+const HORAS_POR_DIA = 24;
+
+/** «Hace 2 h», «Hace 5 min», «Ayer» o «16 feb» (en la zona del consultorio) según cuánto haya pasado. */
+export function formatearHace(instante: string, ahora: Date, zona: string): string {
+  const minutos = Math.floor(
+    (ahora.getTime() - new Date(instante).getTime()) / MILISEGUNDOS_POR_MINUTO,
+  );
+  if (minutos < 1) return 'Justo ahora';
+  if (minutos < MINUTOS_POR_HORA) return `Hace ${minutos} min`;
+  const horas = Math.floor(minutos / MINUTOS_POR_HORA);
+  if (horas < HORAS_POR_DIA) return `Hace ${horas} h`;
+  const c = componentes(new Date(instante), zona);
+  const hoy = componentes(ahora, zona);
+  const ayer = sumarDias(`${hoy.anio}-${dosDigitos(hoy.mes)}-${dosDigitos(hoy.dia)}`, -1);
+  if (ayer === `${c.anio}-${dosDigitos(c.mes)}-${dosDigitos(c.dia)}`) return 'Ayer';
+  return `${c.dia} ${MESES_CORTOS[c.mes - 1]}`;
+}

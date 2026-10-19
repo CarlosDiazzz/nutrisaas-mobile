@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Bell } from 'lucide-react-native';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Alerta, Boton, Encabezado, Esqueleto, Pantalla } from '@/components/ui';
 import { HojaRegistrarPeso } from '@/features/progreso';
@@ -47,7 +47,9 @@ export default function InicioScreen() {
       <Encabezado
         titulo={`Hola, ${datos.nombre}`}
         subtitulo={formatearDia(datos.hoy)}
-        accion={<Campana conAvisos={datos.avisosSinLeer > 0} />}
+        accion={
+          <Campana conAvisos={datos.avisosSinLeer > 0} onPress={() => router.push('/avisos')} />
+        }
       />
       <TarjetaProximaCita cita={datos.proximaCita} zonaHoraria={datos.zonaHoraria} />
       <MenuDeHoyBloque
@@ -64,17 +66,18 @@ export default function InicioScreen() {
   );
 }
 
-/** Campana de avisos con un punto si hay sin leer. La bandeja llega en la sección 3E. */
-function Campana({ conAvisos }: { conAvisos: boolean }) {
+/** Campana de avisos con un punto si hay sin leer; abre la bandeja. */
+function Campana({ conAvisos, onPress }: { conAvisos: boolean; onPress: () => void }) {
   return (
-    <View
-      accessible
+    <Pressable
+      accessibilityRole="button"
       accessibilityLabel={conAvisos ? 'Avisos, hay sin leer' : 'Avisos'}
+      onPress={onPress}
       style={estilos.campana}
     >
       <Bell size={TAMANO_CAMPANA} color={colores.texto} />
       {conAvisos ? <View style={estilos.punto} /> : null}
-    </View>
+    </Pressable>
   );
 }
 
