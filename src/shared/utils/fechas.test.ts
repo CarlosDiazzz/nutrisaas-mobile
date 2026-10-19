@@ -2,6 +2,7 @@ import {
   describirDia,
   diaDeLaSemana,
   hoyEnZona,
+  nombreDelMes,
   sumarDias,
   formatearDia,
   formatearDiaYHora,
@@ -86,5 +87,10 @@ describe('fechas', () => {
     expect(diaDeLaSemana('2027-03-15')).toBe(1);
     expect(diaDeLaSemana('2027-03-21')).toBe(7);
     expect(diaDeLaSemana('2027-03-18')).toBe(4);
+  });
+
+  it('da el nombre del mes de un día sin hora', () => {
+    expect(nombreDelMes('2026-12-14')).toBe('diciembre');
+    expect(nombreDelMes('2027-03-15')).toBe('marzo');
   });
 });
