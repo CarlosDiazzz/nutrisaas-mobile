@@ -41,4 +41,29 @@ describe('fechas', () => {
     expect(formatearMiles(117.5)).toBe('118');
     expect(formatearMiles(12000)).toBe('12,000');
   });
+
+  it('un mes por cada nombre: no depende de los nombres de Intl (Hermes los entrega mal)', () => {
+    const esperados = [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ];
+    esperados.forEach((mes, indice) => {
+      const dia = `2027-${String(indice + 1).padStart(2, '0')}-10`;
+      expect(formatearDia(dia).toLowerCase()).toContain(` 10 de ${mes}`);
+    });
+  });
+
+  it('la medianoche se escribe 00:00 aunque el motor la entregue como 24', () => {
+    expect(formatearDiaYHora('2027-03-16T06:00:00Z', ZONA)).toBe('Martes 16 de marzo · 00:00');
+  });
 });
