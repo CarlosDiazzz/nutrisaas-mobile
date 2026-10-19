@@ -104,3 +104,23 @@ export function formatearMiles(numero: number): string {
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+/** El día de hoy en la zona del consultorio, como «2027-03-15». */
+export function hoyEnZona(zona: string, ahora: Date = new Date(Date.now())): string {
+  const c = componentes(ahora, zona);
+  return `${c.anio}-${dosDigitos(c.mes)}-${dosDigitos(c.dia)}`;
+}
+
+/** Suma (o resta) días a un día sin hora: «2027-03-15» + 3 → «2027-03-18». */
+export function sumarDias(dia: string, dias: number): string {
+  const c = deDiaSinHora(dia);
+  const fecha = new Date(Date.UTC(c.anio, c.mes - 1, c.dia + dias));
+  return `${fecha.getUTCFullYear()}-${dosDigitos(fecha.getUTCMonth() + 1)}-${dosDigitos(fecha.getUTCDate())}`;
+}
+
+/** 1 (lunes) a 7 (domingo) del día sin hora. */
+export function diaDeLaSemana(dia: string): number {
+  const c = deDiaSinHora(dia);
+  const dow = new Date(Date.UTC(c.anio, c.mes - 1, c.dia)).getUTCDay();
+  return dow === 0 ? 7 : dow;
+}
