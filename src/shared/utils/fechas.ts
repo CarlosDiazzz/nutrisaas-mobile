@@ -1,0 +1,106 @@
+// Las fechas llegan del servidor en UTC (instantes) o como día sin hora (LocalDate) y se muestran en la zona
+// horaria del consultorio, en español, nunca en la del teléfono.
+//
+// Hermes (el motor de JavaScript del teléfono) no entrega los nombres de mes y de día de `Intl` de forma
+// confiable (un mes llegó como «undefined»). Por eso `Intl` solo se usa para los números de la fecha en la
+// zona del consultorio y los nombres en español salen de estas tablas.
+const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+const MILISEGUNDOS_POR_DIA = 86_400_000;
+
+interface Componentes {
+  anio: number;
+  /** 1 a 12. */
+  mes: number;
+  dia: number;
+  hora: number;
+  minuto: number;
+}
+
+/** Año, mes, día, hora y minuto del instante en la zona dada. */
+function componentes(fecha: Date, zona: string): Componentes {
+  const formato = new Intl.DateTimeFormat('en-US', {
+    timeZone: zona,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  });
+  const partes = Object.fromEntries(
+    formato.formatToParts(fecha).map(({ type, value }) => [type, Number(value)]),
+  );
+  return {
+    anio: partes.year,
+    mes: partes.month,
+    dia: partes.day,
+    // Algunos motores escriben la medianoche como 24.
+    hora: partes.hour === 24 ? 0 : partes.hour,
+    minuto: partes.minute,
+  };
+}
+
+const mayuscula = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
+const dosDigitos = (numero: number) => numero.toString().padStart(2, '0');
+
+function nombreDelDia({ anio, mes, dia }: Componentes): string {
+  return DIAS[new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay()];
+}
+
+/** «2027-03-15» → sus componentes (no depende de ninguna zona). */
+function deDiaSinHora(dia: string): Componentes {
+  const [anio, mes, diaDelMes] = dia.split('-').map(Number);
+  return { anio, mes, dia: diaDelMes, hora: 0, minuto: 0 };
+}
+
+/** Día sin hora «2027-03-15» → «Lunes 15 de marzo». */
+export function formatearDia(dia: string): string {
+  const c = deDiaSinHora(dia);
+  return mayuscula(`${nombreDelDia(c)} ${c.dia} de ${MESES[c.mes - 1]}`);
+}
+
+/** Instante → «Jueves 18 de marzo · 10:00» en la zona del consultorio. */
+export function formatearDiaYHora(instante: string, zona: string): string {
+  const c = componentes(new Date(instante), zona);
+  return `${mayuscula(`${nombreDelDia(c)} ${c.dia} de ${MESES[c.mes - 1]}`)} · ${dosDigitos(c.hora)}:${dosDigitos(c.minuto)}`;
+}
+
+/** Instante → «15 de febrero de 2027» en la zona del consultorio. */
+export function formatearFechaLarga(instante: string, zona: string): string {
+  const c = componentes(new Date(instante), zona);
+  return `${c.dia} de ${MESES[c.mes - 1]} de ${c.anio}`;
+}
+
+/** Día sin hora → «hoy», «ayer» o «el 22 de febrero», según el «hoy» del consultorio. */
+export function describirDia(dia: string, hoy: string): string {
+  const a = deDiaSinHora(dia);
+  const b = deDiaSinHora(hoy);
+  const diferencia = Math.round(
+    (Date.UTC(b.anio, b.mes - 1, b.dia) - Date.UTC(a.anio, a.mes - 1, a.dia)) /
+      MILISEGUNDOS_POR_DIA,
+  );
+  if (diferencia === 0) return 'hoy';
+  if (diferencia === 1) return 'ayer';
+  return `el ${a.dia} de ${MESES[a.mes - 1]}`;
+}
+
+/** 1600 → «1,600»; sin depender de los datos de idioma del motor de JavaScript. */
+export function formatearMiles(numero: number): string {
+  return Math.round(numero)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}

@@ -101,12 +101,13 @@ log.info("Paciente {} registrado", paciente.getId());
 
 ## 4. Reglas de la app móvil (nutrisaas-mobile)
 
-- Mismas responsabilidades y flujo que la web: **Pantalla → Hook → Servicio → httpClient**. Un componente nunca importa Axios; un feature no importa internos de otro.
-- Los archivos de `app/` (Expo Router) son **delgados**: solo importan y renderizan una pantalla o componente de `src/features`. Sin lógica ni llamadas HTTP en `app/`.
+- Mismas responsabilidades y flujo que la web: **Pantalla → Hook → Servicio → httpClient**. Un componente nunca importa Axios; un feature no importa internos de otro: solo lo que exporta su `index.ts` (por ejemplo `@/features/auth`); lo compartido sube a `src/components/ui` o `src/shared`.
+- Estructura por feature: `src/features/<feature>/{screens,hooks,services,components,schemas}`.
+- Los archivos de `app/` (Expo Router) son **delgados**: solo importan y renderizan una pantalla de `src/features`. Sin lógica ni llamadas HTTP en `app/`.
 
 ```tsx
 // Correcto: app/(auth)/login.tsx
-import { LoginScreen } from '@/features/auth/components/LoginScreen';
+import LoginScreen from '@/features/auth/screens/LoginScreen';
 export default LoginScreen;
 
 // Incorrecto: lógica y HTTP dentro de app/
@@ -114,18 +115,33 @@ export default function Login() { const r = await axios.post('/login', ...); }
 ```
 
 - TypeScript estricto: sin `any`; tipos de respuesta de la API en `features/x/types.ts`.
-- Token **solo** en `expo-secure-store` a través de `src/auth/tokenStorage.ts`. Prohibido `AsyncStorage` para datos sensibles.
-- Colores, tamaños y espaciados solo desde `src/theme/`; estilos con `StyleSheet.create`, sin estilos en línea repetidos.
+- Sesión: el token de acceso vive **solo en memoria** (`src/auth/sesionEnMemoria.ts`) y el de renovación **solo** en `expo-secure-store` a través de `src/auth/tokenStorage.ts`. Prohibido `AsyncStorage` para datos sensibles.
+- Colores, tamaños, espaciados y fuentes solo desde `src/theme/tokens.ts`; estilos con `StyleSheet.create`, sin estilos en línea repetidos.
 
 ```tsx
 // Incorrecto
-<Text style={{ color: '#2E7D32', fontSize: 18 }}>Hola</Text>
+<Text style={{ color: '#2E7D5B', fontSize: 18 }}>Hola</Text>
 
 // Correcto
 <Text style={estilos.titulo}>Hola</Text>
-const estilos = StyleSheet.create({ titulo: { color: colores.primario, fontSize: tipografia.tamanoTitulo } });
+const estilos = StyleSheet.create({ titulo: { color: colores.primario, fontSize: tamanos.tituloSeccion } });
 ```
 
 - Variables de entorno solo desde `src/config/env.ts` (`EXPO_PUBLIC_*` es público: nunca poner secretos ahí).
 - Listas largas con `FlatList`, no `map` dentro de `ScrollView`.
 - Manejar siempre los estados de carga, error y vacío en cada pantalla.
+- Mensajes de error en español, tomados del `ProblemDetail` del servidor; sin detalles técnicos.
+- Fechas en la **zona horaria del consultorio** (viene en `/api/paciente/yo`), no en la del teléfono.
+
+### Accesibilidad
+
+- Objetivos táctiles de al menos **44 × 44 pt**.
+- `accessibilityLabel` en iconos y controles sin texto; `accessibilityRole` en botones, encabezados y alertas.
+- Textos que respetan el tamaño de fuente del sistema (sin `allowFontScaling={false}`).
+- Una hoja inferior o un diálogo agrupa el fondo y el contenido en un mismo contenedor modal, para que el fondo siga siendo alcanzable con lector de pantalla.
+
+### Pruebas
+
+- Jest con `jest-expo` y React Native Testing Library (**v14: `render`, `rerender` y `fireEvent` son asíncronos**, usa `await`).
+- Cada componente de `src/components/ui` y cada pantalla tienen al menos una prueba; el cliente HTTP y la sesión se prueban con un adaptador falso de axios (`src/test/adaptadorFalso.ts`), sin red.
+- Se prueba comportamiento visible (roles, textos, estados), no detalles de implementación.

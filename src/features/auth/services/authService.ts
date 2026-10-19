@@ -1,11 +1,20 @@
 import { httpClient } from '@/api/httpClient';
+import { TokensMovil } from '@/auth/sesion';
 
-import { CredencialesLogin, RespuestaLogin } from '../types';
+import { CredencialesLogin, DatosActivacion } from '../types';
 
 export const authService = {
-  // TODO HU-23: confirmar la ruta y el contrato del login real con el backend.
-  async login(credenciales: CredencialesLogin): Promise<RespuestaLogin> {
-    const { data } = await httpClient.post<RespuestaLogin>('/api/auth/login', credenciales);
+  async login(credenciales: CredencialesLogin): Promise<TokensMovil> {
+    const { data } = await httpClient.post<TokensMovil>('/api/auth/movil/login', credenciales);
     return data;
+  },
+
+  async activar(datos: DatosActivacion): Promise<TokensMovil> {
+    const { data } = await httpClient.post<TokensMovil>('/api/auth/movil/activar', datos);
+    return data;
+  },
+
+  async cerrarSesion(tokenRenovacion: string): Promise<void> {
+    await httpClient.post('/api/auth/movil/logout', { refreshToken: tokenRenovacion });
   },
 };
