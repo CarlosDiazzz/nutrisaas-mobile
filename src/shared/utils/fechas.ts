@@ -124,3 +124,8 @@ export function diaDeLaSemana(dia: string): number {
   const dow = new Date(Date.UTC(c.anio, c.mes - 1, c.dia)).getUTCDay();
   return dow === 0 ? 7 : dow;
 }
+
+/** Día sin hora «2026-12-14» → «diciembre». */
+export function nombreDelMes(dia: string): string {
+  return MESES[deDiaSinHora(dia).mes - 1];
+}
