@@ -65,9 +65,15 @@ const YO = {
   consentimiento: null,
 };
 
-/** El servidor responde a cada ruta con lo suyo: la hoja de registro también pide /yo. */
-const datosDe = (url: string | undefined, inicio: Inicio) =>
-  url === '/api/paciente/yo' ? YO : inicio;
+/** Sin registros: la hoja de registro también pide el historial y se queda en «Guardar registro». */
+const PROGRESO_VACIO = { rango: 'TODO', puntos: [], resumen: null };
+
+/** El servidor responde a cada ruta con lo suyo: la hoja de registro también pide /yo y el progreso. */
+const datosDe = (url: string | undefined, inicio: Inicio) => {
+  if (url === '/api/paciente/yo') return YO;
+  if (url === '/api/paciente/progreso') return PROGRESO_VACIO;
+  return inicio;
+};
 
 function responderCon(inicio: Inicio) {
   httpClient.defaults.adapter = crearAdaptadorFalso((peticion) => ({
