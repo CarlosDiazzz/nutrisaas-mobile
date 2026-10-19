@@ -47,10 +47,31 @@ const INICIO_DE_ANA: Inicio = {
   avisosSinLeer: 0,
 };
 
+const YO = {
+  paciente: {
+    id: 15,
+    nombre: 'Ana',
+    nombreCompleto: 'Ana López Ruiz',
+    email: 'ana.lopez@correo.mx',
+  },
+  nutriologo: { nombreCompleto: 'Laura Méndez Torres' },
+  consultorio: {
+    nombre: 'NutriSalud',
+    telefono: null,
+    direccion: null,
+    zonaHoraria: 'America/Mexico_City',
+  },
+  consentimiento: null,
+};
+
+/** El servidor responde a cada ruta con lo suyo: la hoja de registro también pide /yo. */
+const datosDe = (url: string | undefined, inicio: Inicio) =>
+  url === '/api/paciente/yo' ? YO : inicio;
+
 function responderCon(inicio: Inicio) {
-  httpClient.defaults.adapter = crearAdaptadorFalso(() => ({
+  httpClient.defaults.adapter = crearAdaptadorFalso((peticion) => ({
     status: 200,
-    data: inicio,
+    data: datosDe(peticion.url, inicio),
   })).adaptador;
 }
 
@@ -142,7 +163,7 @@ describe('InicioScreen', () => {
     await guardarTokenRenovacion('renovacion-1');
     const llamadas = crearAdaptadorFalso((peticion) =>
       peticion.headers.Authorization === 'Bearer acceso-2'
-        ? { status: 200, data: INICIO_DE_ANA }
+        ? { status: 200, data: datosDe(peticion.url, INICIO_DE_ANA) }
         : { status: 401 },
     );
     httpClient.defaults.adapter = llamadas.adaptador;
@@ -162,7 +183,8 @@ describe('InicioScreen', () => {
 
   it('un error del servidor se muestra con «Reintentar», que vuelve a pedir el inicio', async () => {
     let intentos = 0;
-    httpClient.defaults.adapter = crearAdaptadorFalso(() => {
+    httpClient.defaults.adapter = crearAdaptadorFalso((peticion) => {
+      if (peticion.url !== '/api/paciente/inicio') return { status: 200, data: YO };
       intentos += 1;
       return intentos === 1
         ? problema(500, 'Ocurrió un error inesperado. Intenta de nuevo más tarde.')
@@ -183,5 +205,16 @@ describe('InicioScreen', () => {
     await renderizarConSesion(<InicioScreen />);
 
     expect(screen.getAllByLabelText('Cargando').length).toBeGreaterThan(0);
+  });
+
+  it('«+ Registrar» abre la hoja «Registrar mi peso»', async () => {
+    responderCon(INICIO_DE_ANA);
+    await renderizarConSesion(<InicioScreen />);
+
+    expect(screen.queryByText('Registrar mi peso')).not.toBeOnTheScreen();
+    await fireEvent.press(await screen.findByRole('button', { name: '+ Registrar' }));
+
+    expect(await screen.findByText('Registrar mi peso')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Guardar registro' })).toBeOnTheScreen();
   });
 });

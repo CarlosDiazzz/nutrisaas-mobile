@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { Bell } from 'lucide-react-native';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Alerta, Boton, Encabezado, Esqueleto, Pantalla } from '@/components/ui';
+import { HojaRegistrarPeso } from '@/features/progreso';
 import { formatearDia } from '@/shared/utils/fechas';
 import { colores } from '@/theme';
 
@@ -16,6 +18,7 @@ const TAMANO_CAMPANA = 18;
 export default function InicioScreen() {
   const router = useRouter();
   const inicio = useInicio();
+  const [registrando, setRegistrando] = useState(false);
 
   if (inicio.isPending) {
     return (
@@ -51,7 +54,12 @@ export default function InicioScreen() {
         menu={datos.menuHoy}
         onAbrirTiempo={(tiempo) => router.navigate({ pathname: '/plan', params: { tiempo } })}
       />
-      <TarjetaUltimoPeso peso={datos.ultimoPeso} hoy={datos.hoy} />
+      <TarjetaUltimoPeso
+        peso={datos.ultimoPeso}
+        hoy={datos.hoy}
+        onRegistrar={() => setRegistrando(true)}
+      />
+      <HojaRegistrarPeso visible={registrando} onCerrar={() => setRegistrando(false)} />
     </Pantalla>
   );
 }
