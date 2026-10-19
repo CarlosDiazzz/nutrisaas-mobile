@@ -46,3 +46,7 @@ example
 .env
 .env.*
 !.env.example
+
+# Credenciales de Firebase (FCM V1): se cargan en EAS, nunca se suben
+google-services.json
+*-service-account.json

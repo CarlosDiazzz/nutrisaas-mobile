@@ -12,7 +12,8 @@ import { Inicio } from '../types';
 import InicioScreen from './InicioScreen';
 
 const mockNavigate = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate }) }));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate, push: mockPush }) }));
 
 const INICIO_DE_ANA: Inicio = {
   nombre: 'Ana',
@@ -205,6 +206,15 @@ describe('InicioScreen', () => {
     await renderizarConSesion(<InicioScreen />);
 
     expect(screen.getAllByLabelText('Cargando').length).toBeGreaterThan(0);
+  });
+
+  it('tocar la campana abre la bandeja de avisos', async () => {
+    responderCon({ ...INICIO_DE_ANA, avisosSinLeer: 3 });
+    await renderizarConSesion(<InicioScreen />);
+
+    await fireEvent.press(await screen.findByRole('button', { name: 'Avisos, hay sin leer' }));
+
+    expect(mockPush).toHaveBeenCalledWith('/avisos');
   });
 
   it('«+ Registrar» abre la hoja «Registrar mi peso»', async () => {

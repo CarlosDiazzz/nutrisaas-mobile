@@ -12,6 +12,8 @@ import { Progreso, Punto, Rango } from '../types';
 
 import ProgresoScreen, { subtituloDeRango } from './ProgresoScreen';
 
+let mockParametros: { registrar?: string } = {};
+jest.mock('expo-router', () => ({ useLocalSearchParams: () => mockParametros }));
 let mockDatosGrafica: { value: number }[] = [];
 jest.mock('react-native-gifted-charts', () => ({
   LineChart: (props: { data: { value: number }[] }) => {
@@ -106,6 +108,7 @@ describe('ProgresoScreen', () => {
   beforeEach(async () => {
     jest.restoreAllMocks();
     mockDatosGrafica = [];
+    mockParametros = {};
     jest.spyOn(Date, 'now').mockReturnValue(new Date('2027-03-15T16:00:00Z').getTime());
     fijarTokenAcceso('acceso-1');
     await eliminarTokenRenovacion();
@@ -183,6 +186,23 @@ describe('ProgresoScreen', () => {
     await fireEvent.press(await screen.findByRole('button', { name: 'Registrar peso' }));
 
     expect(await screen.findByLabelText('Fecha: Hoy, lunes 15 de marzo')).toBeOnTheScreen();
+  });
+
+  it('la notificación del recordatorio semanal abre la hoja de registrar al llegar con el parámetro', async () => {
+    servidor(COMPLETO);
+    mockParametros = { registrar: '1805' };
+    await renderizarConSesion(<ProgresoScreen />);
+
+    expect(await screen.findByText('Registrar mi peso')).toBeOnTheScreen();
+    expect(await screen.findByLabelText('Fecha: Hoy, lunes 15 de marzo')).toBeOnTheScreen();
+  });
+
+  it('sin el parámetro la hoja no se abre sola', async () => {
+    servidor(COMPLETO);
+    await renderizarConSesion(<ProgresoScreen />);
+    await screen.findByText('Peso de diciembre a marzo');
+
+    expect(screen.queryByText('Registrar mi peso')).not.toBeOnTheScreen();
   });
 
   it('sin registros muestra el estado vacío y la lista vacía', async () => {

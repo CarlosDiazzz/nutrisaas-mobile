@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { Plus, TrendingUp } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -40,15 +41,23 @@ export function subtituloDeRango(puntos: Punto[]): string {
 
 export default function ProgresoScreen() {
   const yo = useYo();
+  const { registrar } = useLocalSearchParams<{ registrar?: string }>();
   const [rango, setRango] = useState<Rango>('TRIMESTRE');
   const [hoja, setHoja] = useState<{ abierta: boolean; fecha?: string }>({ abierta: false });
+  // La notificación del recordatorio semanal abre esta pantalla con un valor nuevo en `registrar`: la hoja se
+  // abre mientras ese valor no se haya atendido (al cerrarla se da por atendido).
+  const [registrarAtendido, setRegistrarAtendido] = useState<string | undefined>();
+  const abiertaPorNotificacion = registrar !== undefined && registrar !== registrarAtendido;
   const progreso = useProgreso(rango);
   // Los registros propios salen siempre de la serie completa, sin importar el rango de la gráfica.
   const historial = useProgreso('TODO');
 
   const hoy = yo.data ? hoyEnZona(yo.data.consultorio.zonaHoraria) : null;
   const abrirHoja = (fecha?: string) => setHoja({ abierta: true, fecha });
-  const cerrarHoja = () => setHoja({ abierta: false });
+  const cerrarHoja = () => {
+    setHoja({ abierta: false });
+    setRegistrarAtendido(registrar);
+  };
 
   if (progreso.isPending || yo.isPending) {
     return (
@@ -125,7 +134,11 @@ export default function ProgresoScreen() {
           <Text style={estilos.vacio}>Aún no tienes registros propios.</Text>
         </Tarjeta>
       )}
-      <HojaRegistrarPeso visible={hoja.abierta} fechaInicial={hoja.fecha} onCerrar={cerrarHoja} />
+      <HojaRegistrarPeso
+        visible={hoja.abierta || abiertaPorNotificacion}
+        fechaInicial={hoja.fecha}
+        onCerrar={cerrarHoja}
+      />
     </Pantalla>
   );
 }

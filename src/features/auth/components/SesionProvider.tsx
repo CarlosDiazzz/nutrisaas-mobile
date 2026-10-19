@@ -3,6 +3,7 @@ import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } f
 
 import { registrarManejadorDeSesion } from '@/api/httpClient';
 import { renovarSesion } from '@/api/renovarSesion';
+import { ejecutarAntesDeCerrarSesion } from '@/auth/ganchosDeSesion';
 import { borrarTokens, guardarTokens } from '@/auth/sesion';
 import { obtenerTokenRenovacion } from '@/auth/tokenStorage';
 
@@ -54,6 +55,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const cerrarSesion = useCallback(async () => {
+    await ejecutarAntesDeCerrarSesion();
     const tokenRenovacion = await obtenerTokenRenovacion();
     if (tokenRenovacion) {
       try {

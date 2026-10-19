@@ -12,8 +12,10 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { NavegadorRaiz, SesionProvider } from '@/features/auth';
+import { configurarManejador } from '@/features/notificaciones';
 
 SplashScreen.preventAutoHideAsync();
+configurarManejador();
 
 export default function RootLayout() {
   const [queryClient] = useState(() => new QueryClient());

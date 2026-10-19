@@ -5,6 +5,7 @@ import { Text } from 'react-native';
 
 import { httpClient } from '@/api/httpClient';
 import { clienteSinSesion } from '@/api/renovarSesion';
+import { registrarAntesDeCerrarSesion } from '@/auth/ganchosDeSesion';
 import { obtenerTokenAcceso } from '@/auth/sesionEnMemoria';
 import {
   eliminarTokenRenovacion,
@@ -154,5 +155,30 @@ describe('SesionProvider', () => {
 
     await waitFor(() => expect(screen.getByText('fuera')).toBeOnTheScreen());
     expect(await obtenerTokenRenovacion()).toBeNull();
+  });
+
+  it('cerrarSesion corre antes las tareas registradas (con el token de acceso todavía vigente) aunque alguna falle', async () => {
+    await guardarTokenRenovacion('renovacion-0');
+    const orden: string[] = [];
+    const llamadas = crearAdaptadorFalso((peticion) => {
+      orden.push(`http ${peticion.url}`);
+      return { status: 204 };
+    });
+    httpClient.defaults.adapter = llamadas.adaptador;
+    const retirar = registrarAntesDeCerrarSesion(async () => {
+      orden.push(`gancho con token ${obtenerTokenAcceso()}`);
+    });
+    const retirarQueFalla = registrarAntesDeCerrarSesion(async () => {
+      throw new Error('falla');
+    });
+    await montar();
+    await screen.findByText('dentro');
+
+    await act(() => sesion.cerrarSesion());
+
+    expect(await screen.findByText('fuera')).toBeOnTheScreen();
+    expect(orden).toEqual(['gancho con token acceso-1', 'http /api/auth/movil/logout']);
+    retirar();
+    retirarQueFalla();
   });
 });

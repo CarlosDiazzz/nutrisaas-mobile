@@ -13,9 +13,21 @@ import { crearAdaptadorFalso, problema } from '@/test/adaptadorFalso';
 import { renderizarConSesion } from '@/test/proveedores';
 import { Yo } from '@/shared/types/paciente';
 
+import * as preferencia from '@/features/notificaciones/push/preferenciaPush';
+import * as registro from '@/features/notificaciones/push/registroPush';
+import * as nativo from '@/features/notificaciones/push/pushNativo';
+
 import { iniciales } from '../components/AvatarIniciales';
 
 import PerfilScreen, { formatearTelefono } from './PerfilScreen';
+
+jest.mock('@/features/notificaciones/push/pushNativo');
+jest.mock('@/features/notificaciones/push/preferenciaPush');
+jest.mock('@/features/notificaciones/push/registroPush');
+
+const pushNativo = jest.mocked(nativo);
+const preferenciaPush = jest.mocked(preferencia);
+const registroPush = jest.mocked(registro);
 
 const YO_DE_ANA: Yo = {
   paciente: {
@@ -37,6 +49,8 @@ const YO_DE_ANA: Yo = {
 describe('PerfilScreen', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    pushNativo.soportePush.mockReturnValue('si');
+    preferenciaPush.obtenerPreferencia.mockResolvedValue(null);
     fijarTokenAcceso('acceso-1');
     await eliminarTokenRenovacion();
     clienteSinSesion.defaults.adapter = crearAdaptadorFalso(() =>
@@ -86,11 +100,90 @@ describe('PerfilScreen', () => {
     expect(screen.getByText('NutriSalud')).toBeOnTheScreen();
   });
 
-  it('el interruptor de notificaciones está deshabilitado y dice «Disponible pronto»', async () => {
-    await renderizarConSesion(<PerfilScreen />);
+  describe('interruptor de notificaciones', () => {
+    beforeEach(() => {
+      pushNativo.soportePush.mockReturnValue('si');
+      preferenciaPush.obtenerPreferencia.mockResolvedValue(null);
+      registroPush.registrarEsteDispositivo.mockResolvedValue('registrado');
+      registroPush.quitarEsteDispositivo.mockResolvedValue();
+    });
 
-    expect(await screen.findByText('Disponible pronto')).toBeOnTheScreen();
-    expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeDisabled();
+    it('arranca apagado, habilitado y con la descripción del diseño', async () => {
+      await renderizarConSesion(<PerfilScreen />);
+
+      expect(await screen.findByText('Citas, planes nuevos y recordatorios')).toBeOnTheScreen();
+      const interruptor = screen.getByRole('switch', { name: 'Notificaciones' });
+      expect(interruptor).toBeEnabled();
+      expect(interruptor).not.toBeChecked();
+    });
+
+    it('arranca encendido si el teléfono ya estaba registrado', async () => {
+      preferenciaPush.obtenerPreferencia.mockResolvedValue('activado');
+      await renderizarConSesion(<PerfilScreen />);
+
+      await waitFor(() =>
+        expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeChecked(),
+      );
+    });
+
+    it('encenderlo registra el teléfono (pidiendo el permiso si hace falta)', async () => {
+      await renderizarConSesion(<PerfilScreen />);
+      await screen.findByText('Citas, planes nuevos y recordatorios');
+
+      await fireEvent(screen.getByRole('switch', { name: 'Notificaciones' }), 'valueChange', true);
+
+      expect(registroPush.registrarEsteDispositivo).toHaveBeenCalledWith(true);
+      await waitFor(() =>
+        expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeChecked(),
+      );
+    });
+
+    it('si el permiso está denegado se queda apagado y explica qué hacer', async () => {
+      registroPush.registrarEsteDispositivo.mockResolvedValue('sinPermiso');
+      await renderizarConSesion(<PerfilScreen />);
+      await screen.findByText('Citas, planes nuevos y recordatorios');
+
+      await fireEvent(screen.getByRole('switch', { name: 'Notificaciones' }), 'valueChange', true);
+
+      expect(
+        await screen.findByText(
+          'Activa las notificaciones de NutriSaaS en los ajustes del teléfono.',
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByRole('switch', { name: 'Notificaciones' })).not.toBeChecked();
+    });
+
+    it('apagarlo quita el teléfono del servidor y recuerda la preferencia', async () => {
+      preferenciaPush.obtenerPreferencia.mockResolvedValue('activado');
+      await renderizarConSesion(<PerfilScreen />);
+      await waitFor(() =>
+        expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeChecked(),
+      );
+
+      await fireEvent(screen.getByRole('switch', { name: 'Notificaciones' }), 'valueChange', false);
+
+      await waitFor(() =>
+        expect(screen.getByRole('switch', { name: 'Notificaciones' })).not.toBeChecked(),
+      );
+      expect(registroPush.quitarEsteDispositivo).toHaveBeenCalled();
+      expect(preferenciaPush.fijarPreferencia).toHaveBeenCalledWith('desactivado');
+    });
+
+    it('en Expo Go de Android está deshabilitado y lo explica', async () => {
+      pushNativo.soportePush.mockReturnValue('expoGoAndroid');
+      await renderizarConSesion(<PerfilScreen />);
+
+      expect(await screen.findByText('No disponible en Expo Go de Android')).toBeOnTheScreen();
+      expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeDisabled();
+    });
+
+    it('en un simulador está deshabilitado y lo explica', async () => {
+      pushNativo.soportePush.mockReturnValue('sinDispositivo');
+      await renderizarConSesion(<PerfilScreen />);
+
+      expect(await screen.findByText('Disponible solo en un teléfono')).toBeOnTheScreen();
+      expect(screen.getByRole('switch', { name: 'Notificaciones' })).toBeDisabled();
+    });
   });
 
   it('sin consentimiento vigente lo indica', async () => {

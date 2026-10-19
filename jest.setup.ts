@@ -11,3 +11,18 @@ jest.mock('expo-secure-store', () => {
     }),
   };
 });
+
+// Los módulos nativos de notificaciones no existen en Jest: valores por defecto de un teléfono real al que aún
+// no se le ha pedido el permiso. Cada prueba cambia lo que necesita.
+jest.mock('expo-notifications', () => ({
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  getPermissionsAsync: jest.fn(async () => ({ granted: false, status: 'undetermined', canAskAgain: true })),
+  requestPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted', canAskAgain: true })),
+  getExpoPushTokenAsync: jest.fn(async () => ({ data: 'ExponentPushToken[abc]', type: 'expo' })),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  AndroidImportance: { HIGH: 4 },
+  PermissionStatus: { UNDETERMINED: 'undetermined', GRANTED: 'granted', DENIED: 'denied' },
+}));
+jest.mock('expo-device', () => ({ isDevice: true }));
