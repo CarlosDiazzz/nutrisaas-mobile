@@ -1,10 +1,18 @@
 ## Historia de usuario
 
-HU-xx
+HU-xx · <!-- título de la historia -->
 
-## Descripción
+## Cambios
 
-<!-- Qué cambia y por qué -->
+<!-- Qué cambia y por qué, en pocas líneas -->
+
+## Pruebas
+
+<!-- Resumen con cifras de `./mvnw clean verify` / `npm test`, y pruebas manuales hechas -->
+
+## Capturas
+
+<!-- Antes/después o pantalla terminada frente al diseño. Si no hay cambios visibles, escribe "No aplica" -->
 
 ## Cómo probar
 
@@ -16,6 +24,8 @@ HU-xx
 - [ ] Pasa lint y pruebas
 - [ ] Cumple el criterio de validación de la historia
 - [ ] Respeta [CONVENCIONES.md](../CONVENCIONES.md)
+- [ ] Incluye capturas o indica "No aplica"
+- [ ] Al menos una revisión aprobada
 
 ## Reglas principales de este repositorio
 

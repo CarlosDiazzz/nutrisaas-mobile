@@ -1,0 +1,16 @@
+export { default as Alerta } from './Alerta';
+export { default as Boton } from './Boton';
+export { default as Campo } from './Campo';
+export { default as Encabezado } from './Encabezado';
+export { default as Esqueleto } from './Esqueleto';
+export { default as EstadoVacio } from './EstadoVacio';
+export { default as Estadistica } from './Estadistica';
+export { default as EtiquetaSeccion } from './EtiquetaSeccion';
+export { default as FilaAlimento } from './FilaAlimento';
+export { default as FilaTiempoComida } from './FilaTiempoComida';
+export { default as HojaInferior } from './HojaInferior';
+export { default as Insignia } from './Insignia';
+export { default as Pantalla } from './Pantalla';
+export { default as Segmentado } from './Segmentado';
+export { default as SelectorDia } from './SelectorDia';
+export { default as Tarjeta } from './Tarjeta';

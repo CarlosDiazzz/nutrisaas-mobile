@@ -26,7 +26,7 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['src/api/**'],
+    files: ['src/api/**', 'src/test/**'],
     rules: { 'no-restricted-imports': 'off' },
   },
   {

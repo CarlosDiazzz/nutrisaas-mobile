@@ -1,3 +1,1 @@
-export { colores } from './colores';
-export { espaciado, radios } from './espaciado';
-export { tipografia } from './tipografia';
+export { colores, espaciado, fuentes, medidas, radios, tamanos } from './tokens';
