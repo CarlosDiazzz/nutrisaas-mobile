@@ -33,3 +33,4 @@ App móvil React Native (Expo SDK 57, Expo Router, TypeScript) para el paciente 
 - Colores, tamaños o fuentes escritos a mano fuera de `theme/`
 - `console.log` en commits
 - Importar `axios` fuera de `src/api` (y de `src/test`)
+- Fusionar un PR con el CI en rojo (si falla, se arregla en la misma rama)
