@@ -6,7 +6,21 @@ const fs = require('node:fs');
 // Un solo identificador para todas las variantes: así basta registrar una app de Android en Firebase.
 const PAQUETE = 'mx.nutrisaas.paciente';
 
+// La compilación de producción nunca puede apuntar a un backend sin cifrar ni quedarse sin URL.
+function validarCompilacionDeProduccion() {
+  if (process.env.EAS_BUILD_PROFILE !== 'production') return;
+  // Nombre en una variable: así Babel (jest-expo) no sustituye el valor del .env al probar este archivo.
+  const nombre = 'EXPO_PUBLIC_API_URL';
+  const url = process.env[nombre] ?? '';
+  if (!url.startsWith('https://')) {
+    throw new Error(
+      'La compilación de producción exige EXPO_PUBLIC_API_URL con https:// (defínela con `eas env:create --environment production`).',
+    );
+  }
+}
+
 module.exports = ({ config }) => {
+  validarCompilacionDeProduccion();
   const esDesarrollo = process.env.APP_VARIANT === 'development';
   // El archivo de Firebase de Android se pasa como archivo de EAS (GOOGLE_SERVICES_JSON) o se deja en la raíz.
   const googleServices = process.env.GOOGLE_SERVICES_JSON ?? './google-services.json';
